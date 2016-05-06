@@ -289,12 +289,13 @@ void my_main( int polygons ) {
       case POP:
 	pop( s );
 	break;
-      case SAVE:
+      case SAVE:   
 	save_extension( t, op[i].op.save.p->name );
 	break;
       case DISPLAY:
 	display( t );
 	break;
+       
       }
     }
   
