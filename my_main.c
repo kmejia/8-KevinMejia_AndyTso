@@ -295,7 +295,23 @@ void my_main( int polygons ) {
       case DISPLAY:
 	display( t );
 	break;
-       
+
+    /* frames */
+    /*     set the number of frames */
+    /* basename */
+    /*     sets the basename for animation file saving */
+    /* vary */
+    /*     vary the values for a knob between 2 values in a set range of frames 
+
+  frames: set num_frames (in misc_headers.h) for animation
+
+  basename: set name (in misc_headers.h) for animation
+
+  vary: manipluate knob values between two given frames
+        over a specified interval
+*/
+
+	
       }
     }
   
