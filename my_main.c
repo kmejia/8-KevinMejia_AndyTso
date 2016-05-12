@@ -94,20 +94,11 @@ void first_pass() {
       break;
       //second case
     case FRAMES:
-      if (frame) {
-	printf("Frames already defined.\n");
-      }
-      else {
 	num_frames = op[i].op.frames.num_frames;
 	frame = 1;
-      }
       break;
       //third option
     case VARY:
-      if (!frame) {
-	printf("the frames weren't properly defined\n");
-	exit(0);
-      }
       break;
     }
   }
@@ -297,7 +288,7 @@ void my_main( int polygons ) {
 
     for (i=0;i<lastop;i++) {
       switch (op[i].opcode) {
-      case SPHERE: //1
+      case SPHERE: 
 	add_sphere( tmp,op[i].op.sphere.d[0], //cx
 		    op[i].op.sphere.d[1],  //cy
 		    op[i].op.sphere.d[2],  //cz
@@ -308,7 +299,7 @@ void my_main( int polygons ) {
 	tmp->lastcol = 0;
 	break;
 
-      case TORUS: //2 
+      case TORUS: 
 	add_torus( tmp, op[i].op.torus.d[0], //cx
 		   op[i].op.torus.d[1],     //cy
 		   op[i].op.torus.d[2],    //cz
@@ -355,6 +346,7 @@ void my_main( int polygons ) {
 	transform = make_translate( xval * knob_value, yval * knob_value, zval * knob_value);
 	// x origin
 	matrix_mult( s->data[ s->top ], transform );
+	
 	//rearrange
 	copy_matrix( transform, s->data[ s->top ] );
 	free_matrix( transform );
