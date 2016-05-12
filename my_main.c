@@ -277,12 +277,16 @@ void my_main( int polygons ) {
   g.green = 255;
   g.blue = 255;
 
-    
-    for (i=0;i<lastop;i++) {
-  
-      switch (op[i].opcode) {
 
-      case SPHERE:
+  first_pass();
+  if (num_frames > 1)
+    knobs = second_pass();
+    
+  for (i=0;i<lastop;i++) {
+    
+    switch (op[i].opcode) {
+
+    case SPHERE:
 	add_sphere( tmp,op[i].op.sphere.d[0], //cx
 		    op[i].op.sphere.d[1],  //cy
 		    op[i].op.sphere.d[2],  //cz
