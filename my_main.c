@@ -107,6 +107,61 @@ void first_pass() {
   jdyrlandweaver
   ====================*/
 struct vary_node ** second_pass() {
+  struct vary_node ** knobs = (struct vary_node **)malloc(sizeof(struct vary_node *) * num_frames);
+  int i,k;
+  //initial and final frames ;initial and final values
+  double fi, ff,xi , xf;
+  fi=0;
+  ff=0;
+  xi=0;
+  xf=0;
+  for (i=0;i<num_frames;i++)
+    knobs[i] = 0;
+  for (i=0;i<lastop;i++) {
+    switch (op[i].opcode) {
+    case VARY:
+      for (k=0;k<num_frames;k++) {
+	struct vary_node * temp = (struct vary_node *)malloc(sizeof(struct vary_node));
+	strcpy(temp->name, op[i].op.vary.p->name);
+	fi = op[i].op.vary.start_frame;
+	xi = op[i].op.vary.start_val;
+	xf = op[i].op.vary.end_val;
+	ff = op[i].op.vary.end_frame;
+	
+	
+	if (k < fi){
+	  temp->value = xi;
+	}
+	else if (k > ff){
+	  temp->value = xf;
+	}
+	else {
+	  temp->value = ((xf - xi)/(ff - fi))*(k - fi) + xi;
+	}
+	temp->next = 0;
+	//start of the linked list shoutout to APCS
+	struct vary_node * node = knobs[k];
+	if (!node) {
+	  knobs[k] = temp;
+	}
+	else {
+	  while (node->next && strcmp(node->name, temp->name)){
+	    node = node->next;
+	  }
+	  if (!strcmp(node->name, temp->name)) {
+	    if (k >= fi){
+	      node->value = temp->value;
+	    }
+	  }
+	  else {
+	    node->next = temp;
+	  }
+	}
+      }
+      break;
+    }
+  }
+  return knobs;
 }
 
 
