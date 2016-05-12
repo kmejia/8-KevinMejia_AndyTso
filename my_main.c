@@ -265,40 +265,50 @@ void my_main( int polygons ) {
   struct stack *s;
   screen t;
   color g;
-
   struct vary_node **knobs;
   struct vary_node *vn;
   char frame_name[128];
-
   num_frames = 1;
   step = 5;
- 
   g.red = 0;
   g.green = 255;
   g.blue = 255;
 
 
+
   first_pass();
   if (num_frames > 1)
     knobs = second_pass();
-    
-  for (i=0;i<lastop;i++) {
-    
-    switch (op[i].opcode) {
 
-    case SPHERE:
+  for (f=0;f<num_frames;f++) {
+    printf("Frame %d\n",f);
+    s = new_stack();
+    tmp = new_matrix(4, 1000);
+    transform = new_matrix(4,4);
+    clear_screen( t );
+    if (num_frames > 1) {
+      vn = knobs[f];
+      while (vn) {
+	set_value(lookup_symbol(vn->name), vn->value);
+	vn = vn->next;
+      }
+      print_knobs();
+    }
+
+    for (i=0;i<lastop;i++) {
+      switch (op[i].opcode) {
+      case SPHERE: //1
 	add_sphere( tmp,op[i].op.sphere.d[0], //cx
 		    op[i].op.sphere.d[1],  //cy
 		    op[i].op.sphere.d[2],  //cz
 		    op[i].op.sphere.r,
 		    step);
-	//apply the current top origin
 	matrix_mult( s->data[ s->top ], tmp );
 	draw_polygons( tmp, t, g );
 	tmp->lastcol = 0;
 	break;
 
-      case TORUS:
+      case TORUS: //2 
 	add_torus( tmp, op[i].op.torus.d[0], //cx
 		   op[i].op.torus.d[1],     //cy
 		   op[i].op.torus.d[2],    //cz
@@ -310,7 +320,7 @@ void my_main( int polygons ) {
 	tmp->lastcol = 0;
 	break;
 
-      case BOX:
+      case BOX: //3
 	add_box( tmp, op[i].op.box.d0[0],
 		 op[i].op.box.d0[1],
 		 op[i].op.box.d0[2],
@@ -322,7 +332,7 @@ void my_main( int polygons ) {
 	tmp->lastcol = 0;
 	break;
 
-      case LINE:
+      case LINE: //4
 	add_edge( tmp, op[i].op.line.p0[0],
 		  op[i].op.line.p0[1],
 		  op[i].op.line.p0[1],
@@ -333,45 +343,58 @@ void my_main( int polygons ) {
 	tmp->lastcol = 0;
 	break;
 
-      case MOVE:
-	//get the factors
+      case MOVE: //5
 	xval = op[i].op.move.d[0];
 	yval =  op[i].op.move.d[1];
 	zval = op[i].op.move.d[2];
-      
-	transform = make_translate( xval, yval, zval );
-	//multiply by the existing origin
+
+	knob_value = 1;
+	if (op[i].op.move.p) 
+	  knob_value = lookup_symbol(op[i].op.move.p->name)->s.value;
+
+	transform = make_translate( xval * knob_value, yval * knob_value, zval * knob_value);
+	// x origin
 	matrix_mult( s->data[ s->top ], transform );
-	//put the new matrix on the top
+	//rearrange
 	copy_matrix( transform, s->data[ s->top ] );
 	free_matrix( transform );
 	break;
 
-      case SCALE:
+      case SCALE: //6
 	xval = op[i].op.scale.d[0];
 	yval = op[i].op.scale.d[1];
 	zval = op[i].op.scale.d[2];
-      
-	transform = make_scale( xval, yval, zval );
+
+	knob_value = 1;
+	if (op[i].op.scale.p) 
+	  knob_value = lookup_symbol(op[i].op.scale.p->name)->s.value;
+
+	transform = make_scale( xval * knob_value, yval * knob_value, zval * knob_value);
 	matrix_mult( s->data[ s->top ], transform );
-	//put the new matrix on the top
+	// rearranging
 	copy_matrix( transform, s->data[ s->top ] );
 	free_matrix( transform );
 	break;
 
-      case ROTATE:
+      case ROTATE:  //7
 	xval = op[i].op.rotate.degrees * ( M_PI / 180 );
 
-	//get the axis
+	knob_value = 1;
+	if (op[i].op.rotate.p)
+	  knob_value = lookup_symbol(op[i].op.rotate.p->name)->s.value;
+
+
+	//find axis
 	if ( op[i].op.rotate.axis == 0 ) 
-	  transform = make_rotX( xval );
+	  transform = make_rotX( xval * knob_value);
 	else if ( op[i].op.rotate.axis == 1 ) 
-	  transform = make_rotY( xval );
+	  transform = make_rotY( xval * knob_value);
 	else if ( op[i].op.rotate.axis == 2 ) 
-	  transform = make_rotZ( xval );
+	  transform = make_rotZ( xval * knob_value);
 
 	matrix_mult( s->data[ s->top ], transform );
-	//put the new matrix on the top
+
+	//rearrange so that new matrix ends up on  top
 	copy_matrix( transform, s->data[ s->top ] );
 	free_matrix( transform );
 	break;
@@ -382,34 +405,18 @@ void my_main( int polygons ) {
       case POP:
 	pop( s );
 	break;
-      case SAVE:   
+      case SAVE:
 	save_extension( t, op[i].op.save.p->name );
 	break;
       case DISPLAY:
 	display( t );
 	break;
-
-    /* frames */
-    /*     set the number of frames */
-    /* basename */
-    /*     sets the basename for animation file saving */
-    /* vary */
-    /*     vary the values for a knob between 2 values in a set range of frames 
-
-  frames: set num_frames (in misc_headers.h) for animation
-
-  basename: set name (in misc_headers.h) for animation
-
-  vary: manipluate knob values between two given frames
-        over a specified interval
-*/
-
-	
       }
     }
     sprintf(frame_name, "./anim/%s%03d.png", name, f);
     save_extension(t, frame_name);
     free_stack( s );
     free_matrix( tmp );
-    //free_matrix( transform );
+  }
+
 }
