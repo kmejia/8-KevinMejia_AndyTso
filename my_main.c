@@ -82,6 +82,40 @@
   jdyrlandweaver
   ====================*/
 void first_pass() {
+  char bn = 0;
+  char frame = 0;
+  int i;
+  for (i=0;i<lastop;i++) {
+    switch (op[i].opcode) {
+      //first case
+    case BASENAME:
+      strcpy(name, op[i].op.bn.p->name);
+      bn = 1;
+      break;
+      //second case
+    case FRAMES:
+      if (frame) {
+	printf("Frames already defined.\n");
+      }
+      else {
+	num_frames = op[i].op.frames.num_frames;
+	frame = 1;
+      }
+      break;
+      //third option
+    case VARY:
+      if (!frame) {
+	printf("the frames weren't properly defined\n");
+	exit(0);
+      }
+      break;
+    }
+  }
+  if (!bn&&frame) {
+    printf("Frames - check\nbasename - nope\n");
+    strcpy(name, "Anim");
+  }
+
 }
 
 /*======== struct vary_node ** second_pass()) ==========
