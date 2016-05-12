@@ -403,7 +403,8 @@ void my_main( int polygons ) {
 	
       }
     }
-  
+    sprintf(frame_name, "./anim/%s%03d.png", name, f);
+    save_extension(t, frame_name);
     free_stack( s );
     free_matrix( tmp );
     //free_matrix( transform );
